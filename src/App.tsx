@@ -44,7 +44,6 @@ interface IButtonProps {
 }
 
 const Button = memo(function ({ onClick }: IButtonProps): JSX.Element {
-  console.log("button");
   return (
     <button type="button" onClick={onClick}>
       get random user
@@ -57,7 +56,6 @@ interface IUserInfoProps {
 }
 
 function UserInfo({ user }: IUserInfoProps): JSX.Element {
-  console.log("UserInfo");
   return (
     <table>
       <thead>
@@ -107,8 +105,7 @@ function App(): JSX.Element {
   }, []);
 
   const receiveRandomUser = useCallback(() => {
-    const randomId = 1; //Math.floor(Math.random() * (10 - 1)) + 1;
-    console.log("randomId", randomId);
+    const randomId = Math.floor(Math.random() * (10 - 1)) + 1;
     if (!users[randomId]) {
       getUser(randomId)
         .then((user) => {
@@ -135,8 +132,6 @@ function App(): JSX.Element {
     },
     [trottle, receiveRandomUser]
   );
-
-  console.log("app");
 
   return (
     <div>
