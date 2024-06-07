@@ -1,90 +1,21 @@
-// Мы ожидаем, что Вы исправите синтаксические ошибки, сделаете перехват возможных исключений и улучшите читаемость кода.
-// А так же, напишите кастомный хук useThrottle и используете его там где это нужно.
-// Желательно использование React.memo и React.useCallback там где это имеет смысл.
-// Будет большим плюсом, если Вы сможете закэшировать получение случайного пользователя.
-// Укажите правильные типы.
-// По возможности пришлите Ваш вариант в https://codesandbox.io
+# Текстовое описание
 
-import React, { useState } from "react";
+Получаемые пользователи хранятся в state items. Кешируются при получении по id в предложенном изначально объекте <Record<number, TUser>> .
 
-const URL = "https://jsonplaceholder.typicode.com/users";
+Id сгенерированного/текущего пользователь указывается в state current.
 
-type Company = {
-bs: string;
-catchPhrase: string;
-name: string;
-};
+id всех пользователей, для отсутствия необходимости проверки наличия преобразованием объекта, хранятся в массиве в ref ids.
 
-type User = {
-id: number;
-email: string;
-name: string;
-phone: string;
-username: string;
-website: string;
-company: Company;
-address: any
-};
+Пользователь запрашивается с сервера, только при отсутствии сгенерированного рандомного id в ref ids.
 
-interface IButtonProps {
-onClick: any;
-}
+Ошибки получения данных хранятся в state error. Ошибкой считается наличие любой информации в state error.
 
-function Button({ onClick }: IButtonProps): JSX.Element {
-return (
-<button type="button" onClick={onClick}>
-get random user
-</button>
-);
-}
+Компонент Button кеширован в memo. Тк для кнопки в целом не нужны ререндеры
 
-interface IUserInfoProps {
-user: User;
-}
+UserInfo именно в данной конфигурации не требует memo, тк генерация подряд одинакового id не вызывает ререндер компонента App
 
-function UserInfo({ user }: IUserInfoProps): JSX.Element {
-return (
-<table>
-<thead>
-<tr>
-<th>Username</th>
-<th>Phone number</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>{user.name}</td>
-<td>{user.phone}</td>
-</tr>
-</tbody>
-</table>
-);
-}
+Хук useTrottle возвращает функцию, которая засекает время с помощью ref timer и Timeout. Если событие повторяется до истечения таймера, оно запускает новый таймер, очищая старый. Тем самым избегается множественный запуск действия. По окончанию таймера, выполняется действие и очищается ref timer.
 
-function App(): JSX.Element {
-const [item, setItem] = useState<Record<number, User>>(null);
+Так же к многим функциям применен хук useCallback, для получения стабильных ссылок и избежания лишних рендеров.
 
-const receiveRandomUser = async () => {
-const id = Math.floor(Math.random() \* (10 - 1)) + 1;
-const response = await fetch(`${URL}/${id}`);
-const \_user = (await response.json()) as User;
-setItem(\_user);
-};
-
-const handleButtonClick = (
-event: React.MouseEvent<HTMLButtonElement, MouseEvent>
-) => {
-event.stopPropagation();
-receiveRandomUser();
-};
-
-return (
-<div>
-<header>Get a random user</header>
-<Button onClick={handleButtonClick} />
-<UserInfo user={item} />
-</div>
-);
-}
-
-export default App;
+Добавлены дополнительные типы для address получаемого с сервера
