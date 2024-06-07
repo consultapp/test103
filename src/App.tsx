@@ -55,7 +55,7 @@ interface IUserInfoProps {
   user: TUser;
 }
 
-const UserInfo = memo(function UserInfo({ user }: IUserInfoProps): JSX.Element {
+function UserInfo({ user }: IUserInfoProps): JSX.Element {
   return (
     <table>
       <thead>
@@ -72,20 +72,23 @@ const UserInfo = memo(function UserInfo({ user }: IUserInfoProps): JSX.Element {
       </tbody>
     </table>
   );
-});
+}
 
-function useThrottle() {
+function useThrottle(delay: number) {
   const timer = useRef<number | null>(null);
 
-  return (action: () => void) => {
-    if (timer.current) {
-      clearTimeout(timer.current);
-    }
-    timer.current = setTimeout(() => {
-      timer.current = null;
-      action();
-    }, 500);
-  };
+  return useCallback(
+    (action: () => void) => {
+      if (timer.current) {
+        clearTimeout(timer.current);
+      }
+      timer.current = setTimeout(() => {
+        timer.current = null;
+        action();
+      }, delay);
+    },
+    [delay]
+  );
 }
 
 function App(): JSX.Element {
@@ -94,7 +97,7 @@ function App(): JSX.Element {
   const [current, setCurrent] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const trottle = useThrottle();
+  const trottle = useThrottle(500);
 
   const getUser = useCallback(async (id: number) => {
     const response = await fetch(`${URL}/${id}`);
@@ -120,9 +123,9 @@ function App(): JSX.Element {
           setError("Data receiving error:" + e.message);
         });
     } else {
-      setCurrent(randomId);
+      if (current !== randomId) setCurrent(randomId);
     }
-  }, [getUser]);
+  }, [getUser, current]);
 
   const handleButtonClick = useCallback(
     (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
