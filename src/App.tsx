@@ -43,7 +43,8 @@ interface IButtonProps {
   onClick: React.MouseEventHandler<HTMLButtonElement>;
 }
 
-const Button = memo(function Button({ onClick }: IButtonProps): JSX.Element {
+const Button = memo(function ({ onClick }: IButtonProps): JSX.Element {
+  console.log("button");
   return (
     <button type="button" onClick={onClick}>
       get random user
@@ -56,6 +57,7 @@ interface IUserInfoProps {
 }
 
 function UserInfo({ user }: IUserInfoProps): JSX.Element {
+  console.log("UserInfo");
   return (
     <table>
       <thead>
@@ -92,8 +94,7 @@ function useThrottle(delay: number) {
 }
 
 function App(): JSX.Element {
-  const [item, setItem] = useState<Record<number, TUser>>({});
-  const idsRef = useRef<number[]>([]);
+  const [users, setUsers] = useState<Record<number, TUser>>({});
   const [current, setCurrent] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -106,14 +107,14 @@ function App(): JSX.Element {
   }, []);
 
   const receiveRandomUser = useCallback(() => {
-    const randomId = Math.floor(Math.random() * (10 - 1)) + 1;
-    if (!idsRef.current.includes(randomId)) {
+    const randomId = 1; //Math.floor(Math.random() * (10 - 1)) + 1;
+    console.log("randomId", randomId);
+    if (!users[randomId]) {
       getUser(randomId)
         .then((user) => {
           const { id } = user;
           if (id) {
-            idsRef.current.push(id);
-            setItem((prevState) => ({ ...prevState, [id]: user }));
+            setUsers((prevState) => ({ ...prevState, [id]: user }));
             setCurrent(id);
           } else {
             setError("No new user has been received.");
@@ -123,9 +124,9 @@ function App(): JSX.Element {
           setError("Data receiving error:" + e.message);
         });
     } else {
-      if (current !== randomId) setCurrent(randomId);
+      setCurrent(randomId);
     }
-  }, [getUser, current]);
+  }, [getUser, users]);
 
   const handleButtonClick = useCallback(
     (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
@@ -135,13 +136,15 @@ function App(): JSX.Element {
     [trottle, receiveRandomUser]
   );
 
+  console.log("app");
+
   return (
     <div>
       <header>Get a random user</header>
       {error}
       <Button onClick={handleButtonClick} />
       {current && !error ? (
-        <UserInfo user={item[current]} />
+        <UserInfo user={users[current]} />
       ) : (
         <div>No current user</div>
       )}
