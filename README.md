@@ -1,30 +1,90 @@
-# React + TypeScript + Vite
+// Мы ожидаем, что Вы исправите синтаксические ошибки, сделаете перехват возможных исключений и улучшите читаемость кода.
+// А так же, напишите кастомный хук useThrottle и используете его там где это нужно.
+// Желательно использование React.memo и React.useCallback там где это имеет смысл.
+// Будет большим плюсом, если Вы сможете закэшировать получение случайного пользователя.
+// Укажите правильные типы.
+// По возможности пришлите Ваш вариант в https://codesandbox.io
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+import React, { useState } from "react";
 
-Currently, two official plugins are available:
+const URL = "https://jsonplaceholder.typicode.com/users";
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+type Company = {
+bs: string;
+catchPhrase: string;
+name: string;
+};
 
-## Expanding the ESLint configuration
+type User = {
+id: number;
+email: string;
+name: string;
+phone: string;
+username: string;
+website: string;
+company: Company;
+address: any
+};
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
-
-- Configure the top-level `parserOptions` property like this:
-
-```js
-export default {
-  // other rules...
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
-    tsconfigRootDir: __dirname,
-  },
+interface IButtonProps {
+onClick: any;
 }
-```
 
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+function Button({ onClick }: IButtonProps): JSX.Element {
+return (
+<button type="button" onClick={onClick}>
+get random user
+</button>
+);
+}
+
+interface IUserInfoProps {
+user: User;
+}
+
+function UserInfo({ user }: IUserInfoProps): JSX.Element {
+return (
+<table>
+<thead>
+<tr>
+<th>Username</th>
+<th>Phone number</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>{user.name}</td>
+<td>{user.phone}</td>
+</tr>
+</tbody>
+</table>
+);
+}
+
+function App(): JSX.Element {
+const [item, setItem] = useState<Record<number, User>>(null);
+
+const receiveRandomUser = async () => {
+const id = Math.floor(Math.random() \* (10 - 1)) + 1;
+const response = await fetch(`${URL}/${id}`);
+const \_user = (await response.json()) as User;
+setItem(\_user);
+};
+
+const handleButtonClick = (
+event: React.MouseEvent<HTMLButtonElement, MouseEvent>
+) => {
+event.stopPropagation();
+receiveRandomUser();
+};
+
+return (
+<div>
+<header>Get a random user</header>
+<Button onClick={handleButtonClick} />
+<UserInfo user={item} />
+</div>
+);
+}
+
+export default App;
